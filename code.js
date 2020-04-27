@@ -12,11 +12,17 @@ var svg = d3.select("#chart")
 .attr("transform",
       "translate(" + margin.left + "," + margin.top + ")");
 
+datasource = "cases.csv"
+selectedstate="01"
+d3read(datasource)
+d3.selectAll("#type").on("change", function(d){
+  datasource= this.value + ".csv"
+  d3read(datasource)
+})
 
 
-//read data
-d3.csv("cases.csv").then(function(data){
-  console.log(data)
+function d3read (datasrc){
+d3.csv(datasrc).then(function(data){
   var maxcase = 0
   var stateslist = d3.map()
   stateslist.set('Alabama', data[0].geoid.slice(7,9))
@@ -41,8 +47,10 @@ d3.select("#states")
 
 
 d3.select("#states").on("change", function(d){
-  statedata(this.value)
+  selectedstate = this.value
+  statedata(selectedstate)
 })
+
 
 function statedata(geoidval){
   d3.selectAll("g > *").remove()
@@ -60,7 +68,7 @@ function statedata(geoidval){
   }
   
 var categories = countynames
-console.log(categories)
+
 var n = data.columns.length
 
 var yName = d3.scaleBand()
@@ -77,7 +85,7 @@ countydata.map(function(d){
   var numb = 0
   for(i = 3; i < Object.entries(d).slice(2,d.length).length; i += 1){
     var element = Object.entries(d).slice(2,d.length)[i]
-    var datele = new Date(element[0].replace('tstpos_', '').slice(0,4)+ '-' + element[0].replace('tstpos_', '').slice(4,6) + "-" + element[0].replace('tstpos_', '').slice(6,8))
+    var datele = new Date(element[0].replace(/\D/g,'').slice(0,4)+ '-' + element[0].replace(/\D/g,'').slice(4,6) + "-" + element[0].replace(/\D/g,'').slice(6,8))
     if (element[1] - numb > 0){
       density.push([datele, element[1] - numb])
     }
@@ -89,10 +97,10 @@ countydata.map(function(d){
   allDensity.push({key: d.name, density: density})
   })
 
-console.log(maxcase)
-console.log(allDensity)
+
 // Add X axis
-var mindate = new Date(2020,0,20), maxdate = new Date(2020,3,14);
+var mindate = new Date(2020,0,20);
+var maxdate = new Date(2020,3,14);
 var x = d3.scaleTime()
 .domain([mindate,maxdate])
 .range([ 0, width ])
@@ -117,24 +125,41 @@ svg.selectAll("areas")
   .datum(function(d){
     return(d.density)
   })
-  .attr("fill", "CornflowerBlue")
+  .attr("fill", "none")
   .transition()
   .duration(1000)
   .attr("stroke", "#000")
   .attr("stroke-width", 1)
   .attr("d",  d3.line()
-      .curve(d3.curveStep)
       .x(function(d) {
         return x(d[0]); })
-      .y(function(d) {return y(d[1]); }))
+      .y(function(d) {return y(d[1]); })
+      .curve(d3.curveBasis))
+
+
+svg.selectAll("areas")
+.data(allDensity)
+.enter()
+.append("path")
+  .attr("transform", function(d){
+    return("translate(0," + (yName(d.key)-height) +")" )
+  })
+  .datum(function(d){
+    return(d.density)
+  })
+  .attr("fill", "CornflowerBlue")
+  .style("opacity", .3)
+  .transition()
+  .duration(1000)
   .attr("d", d3.area()
     .x(function(d) {return x(d[0]); })
     .y0(height)
-    .y1(function(d) {return y(d[1]); })) 
+    .y1(function(d) {return y(d[1]); })
+    .curve(d3.curveBasis)) 
 }
 
-statedata('01')
-console.log(countydata)
+statedata(selectedstate)
+
 /*
 // Get the different categories and count them
 var categories = countynames
@@ -168,7 +193,7 @@ countydata.map(function(d){
   console.log(allDensity)
 // Add areas
 */
-vardatebins = d3.timeDays(mindate, maxdate, 7);
+//vardatebins = d3.timeDays(mindate, maxdate, 7);
 
 /*
 svg.selectAll("areas")
@@ -198,4 +223,4 @@ svg.selectAll("areas")
   */
 
 
-})
+})}
