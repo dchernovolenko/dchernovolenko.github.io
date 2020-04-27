@@ -83,7 +83,7 @@ svg.append("g")
 
 // Add X axis
 var mindate = new Date(2020,0,20);
-var maxdate = new Date(2020,3,14);
+var maxdate = new Date(2020,3,13);
 var x = d3.scaleTime()
 .domain([mindate,maxdate])
 .range([ 0, width ])
@@ -92,10 +92,10 @@ svg.append("g")
 .attr("transform", "translate(0," + (height + 5) + ")")
 .call(d3.axisBottom(x));
 
-console.log(maxcase)
+
 // Create a Y scale for densities
 var y = d3.scaleLinear()
-.domain([0, maxcase*13])
+.domain([0, maxcase * 5])
 .range([height, 0])
 
 var allDensity = []
@@ -112,26 +112,24 @@ countydata.map(function(d){
   numb = parseInt(Object.entries(d).slice(2,d.length)[0][1])
   for(i = 9; i < Object.entries(d).slice(2,d.length).length; i += 7){
     var element = Object.entries(d).slice(2,d.length)[i]
-    var objectlist = Object.entries(d).slice(i-7, i).map(function(d){return parseInt(d[1])})
-    
+    var cumulmin1week = parseInt(element[1]) - numb
     var datele = new Date(element[0].replace(/\D/g,'').slice(0,4)+ '-' + element[0].replace(/\D/g,'').slice(4,6) + "-" + element[0].replace(/\D/g,'').slice(6,8))
-    if (objectlist.reduce((a, b) => a + b, 0) - numb > 0 && !isNaN(objectlist.reduce((a, b) => a + b, 0))){
-      density.push([datele, objectlist.reduce((a, b) => a + b, 0) - numb])
+    if (cumulmin1week > 0 && !isNaN(cumulmin1week)){
+      density.push([datele, cumulmin1week])
+      numb = cumulmin1week
     }
     else {
       density.push([datele, 0])
+      numb = 0
     }
-    numb = objectlist.reduce((a, b) => a + b, 0)
     lastindex = i
   }
-  var objectlist2 = Object.entries(d).slice(lastindex, Object.entries(d).slice(2,d.length).length).map(function(d){return parseInt(d[1])})
-    if (!isNaN(objectlist2.reduce((a, b) => a + b, 0) - numb)){
-    density.push([maxdate, objectlist2.reduce((a, b) => a + b, 0) - numb])
+    if (!isNaN(parseInt(Object.entries(d).slice(2,d.length)[Object.entries(d).slice(2,d.length).length - 1][1]) - numb)){
+    density.push([maxdate, Object.entries(d).slice(2,d.length)[Object.entries(d).slice(2,d.length).length - 1][1] - numb])
     }
     else {
       density.push([maxdate, 0])
     }
-  console.log(density)
   allDensity.push({key: d.name, density: density})
   })
 
