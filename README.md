@@ -8,6 +8,5 @@ todo:
 - histogram bars
 - transformations 
 - scalable svg (both for page and state)
-- smooth chart -- curve not working?
 - svg -> canvas? + general optimizing
 - general beautifying 
