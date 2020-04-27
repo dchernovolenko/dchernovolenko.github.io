@@ -5,17 +5,19 @@
 <!-- Load d3.js -->
 <script src="https://d3js.org/d3.v5.min.js"></script>
 <style>
-      #chart {
-        position: fixed;
-        left: 0px;
-        right: 0px;
-        top: 0px;
-        bottom: 0px;
-      }
-  </style>
+    #chart {
+      height: 50vh;
+      style="overflow:scroll;"
+      position: fixed;
+      left: 0px;
+      right: 0px;
+      top: 0px;
+      bottom: 0px;
+    }
+</style>
 <!-- Create a div where the graph will take place -->
 
-
+<body>
 <div id="chart">
     <select id='states' style="position:fixed; top: 0;"></select>
     <div id="types" style="position:fixed; left: 200px;">
@@ -23,6 +25,6 @@
       <input id="type" type="radio" name="type" value="deaths" > Deaths<br>
     </div>
 </div>
-
+</body>
 
 <script src="code.js"></script>

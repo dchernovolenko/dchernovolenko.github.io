@@ -1,16 +1,9 @@
 // set the dimensions and margins of the graph
-var margin = {top: 60, right: 60, bottom: 20, left:200},
+var margin = {top: 60, right: 60, bottom: 30, left:200},
 width = 960 - margin.left - margin.right,
 height = 900 - margin.top - margin.bottom;
 
 // append the svg object to the body of the page
-var svg = d3.select("#chart")
-.append("svg")
-.attr("width", width + margin.left + margin.right)
-.attr("height", height + margin.top + margin.bottom)
-.append("g")
-.attr("transform",
-      "translate(" + margin.left + "," + margin.top + ")");
 
 datasource = "cases.csv"
 selectedstate="01"
@@ -53,7 +46,7 @@ d3.select("#states").on("change", function(d){
 
 
 function statedata(geoidval){
-  d3.selectAll("g > *").remove()
+  d3.selectAll("svg").remove()
   countydata = []
   countynames = []
   maxcase = 0
@@ -68,9 +61,18 @@ function statedata(geoidval){
   }
   
 var categories = countynames
-
 var n = data.columns.length
+height = categories.length * 15
 
+var svg = d3.select("#chart")
+.append("svg")
+.attr("width", width + margin.left + margin.right)
+.attr("height", height + margin.top + margin.bottom)
+.append("g")
+.attr("transform",
+      "translate(" + margin.left + "," + margin.top + ")");
+
+//y axis for names
 var yName = d3.scaleBand()
 .domain(categories)
 .range([0, height])
@@ -78,25 +80,6 @@ var yName = d3.scaleBand()
 
 svg.append("g")
 .call(d3.axisLeft(yName));
-
-var allDensity = []
-countydata.map(function(d){
-  density=[]
-  var numb = 0
-  for(i = 3; i < Object.entries(d).slice(2,d.length).length; i += 1){
-    var element = Object.entries(d).slice(2,d.length)[i]
-    var datele = new Date(element[0].replace(/\D/g,'').slice(0,4)+ '-' + element[0].replace(/\D/g,'').slice(4,6) + "-" + element[0].replace(/\D/g,'').slice(6,8))
-    if (element[1] - numb > 0){
-      density.push([datele, element[1] - numb])
-    }
-    else {
-      density.push([datele, 0])
-    }
-    numb = Object.entries(d).slice(2,d.length)[i][1]
-  }
-  allDensity.push({key: d.name, density: density})
-  })
-
 
 // Add X axis
 var mindate = new Date(2020,0,20);
@@ -109,10 +92,48 @@ svg.append("g")
 .attr("transform", "translate(0," + (height + 5) + ")")
 .call(d3.axisBottom(x));
 
+console.log(maxcase)
 // Create a Y scale for densities
 var y = d3.scaleLinear()
-.domain([0, maxcase])
+.domain([0, maxcase*13])
 .range([height, 0])
+
+var allDensity = []
+countydata.map(function(d){
+  density=[]
+  var numb = 0
+  var lastindex = 0
+  if (Object.entries(d).slice(2,d.length)[0][1]){
+  density.push([mindate, parseInt(Object.entries(d).slice(2,d.length)[0][1])])
+  }
+  else {
+    density.push([mindate, 0])
+  }
+  numb = parseInt(Object.entries(d).slice(2,d.length)[0][1])
+  for(i = 9; i < Object.entries(d).slice(2,d.length).length; i += 7){
+    var element = Object.entries(d).slice(2,d.length)[i]
+    var objectlist = Object.entries(d).slice(i-7, i).map(function(d){return parseInt(d[1])})
+    
+    var datele = new Date(element[0].replace(/\D/g,'').slice(0,4)+ '-' + element[0].replace(/\D/g,'').slice(4,6) + "-" + element[0].replace(/\D/g,'').slice(6,8))
+    if (objectlist.reduce((a, b) => a + b, 0) - numb > 0 && !isNaN(objectlist.reduce((a, b) => a + b, 0))){
+      density.push([datele, objectlist.reduce((a, b) => a + b, 0) - numb])
+    }
+    else {
+      density.push([datele, 0])
+    }
+    numb = objectlist.reduce((a, b) => a + b, 0)
+    lastindex = i
+  }
+  var objectlist2 = Object.entries(d).slice(lastindex, Object.entries(d).slice(2,d.length).length).map(function(d){return parseInt(d[1])})
+    if (!isNaN(objectlist2.reduce((a, b) => a + b, 0) - numb)){
+    density.push([maxdate, objectlist2.reduce((a, b) => a + b, 0) - numb])
+    }
+    else {
+      density.push([maxdate, 0])
+    }
+  console.log(density)
+  allDensity.push({key: d.name, density: density})
+  })
 
 
 svg.selectAll("areas")
@@ -135,7 +156,6 @@ svg.selectAll("areas")
         return x(d[0]); })
       .y(function(d) {return y(d[1]); })
       .curve(d3.curveBasis))
-
 
 svg.selectAll("areas")
 .data(allDensity)
