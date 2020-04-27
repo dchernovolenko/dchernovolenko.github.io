@@ -2,7 +2,7 @@ test site for covid19 data project
 
 todo:
 
-
+- unhardcode dates**
 - fix puerto rico
 - state data selection
 - histogram bars
